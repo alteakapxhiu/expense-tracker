@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import YearGrid from "./pages/YearGrid";
 import Categories from "./pages/Categories";
 import Budgets from "./pages/Budgets";
+import ToSpend from "./pages/ToSpend";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
               <Route path="/year" element={<YearGrid />} />
               <Route path="/categories" element={<Categories />} />
               <Route path="/budgets" element={<Budgets />} />
+              <Route path="/to-spend" element={<ToSpend />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
