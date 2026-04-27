@@ -82,6 +82,48 @@ export type Database = {
         }
         Relationships: []
       }
+      planned_expenses: {
+        Row: {
+          amount: number
+          category_id: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          priority: string
+          status: string
+          target_date: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          priority?: string
+          status?: string
+          target_date?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          priority?: string
+          status?: string
+          target_date?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
