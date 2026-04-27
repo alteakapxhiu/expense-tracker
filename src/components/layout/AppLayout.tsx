@@ -1,6 +1,6 @@
 import { Navigate, NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Wallet, LayoutDashboard, Table2, Tags, LogOut, Target } from "lucide-react";
+import { Wallet, LayoutDashboard, Table2, Tags, LogOut, Target, ListChecks } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
