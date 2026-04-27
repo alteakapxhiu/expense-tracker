@@ -39,6 +39,9 @@ export default function AppLayout() {
           <NavLink to="/budgets" className={navCls}>
             <Target className="h-4 w-4" /> Budgets
           </NavLink>
+          <NavLink to="/to-spend" className={navCls}>
+            <ListChecks className="h-4 w-4" /> To Spend
+          </NavLink>
         </nav>
         <div className="mt-4 pt-4 border-t border-sidebar-border">
           <div className="px-2 mb-2">
