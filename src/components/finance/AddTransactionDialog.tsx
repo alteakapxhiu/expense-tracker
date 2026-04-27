@@ -31,6 +31,7 @@ export function AddTransactionDialog({ defaultCategoryId, defaultKind, defaultDa
   const { data: cats = [] } = useCategories();
   const upsert = useUpsertTransaction();
   const [open, setOpen] = useState(false);
+  const [categoryId, setCategoryId] = useState<string | undefined>(defaultCategoryId);
   const today = new Date().toISOString().slice(0, 10);
 
   const filteredCats = useMemo(
@@ -41,10 +42,11 @@ export function AddTransactionDialog({ defaultCategoryId, defaultKind, defaultDa
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+    if (!categoryId) return toast.error("Pick a category");
     const parsed = schema.safeParse({
       description: fd.get("description"),
       amount: Number(fd.get("amount")),
-      category_id: fd.get("category_id"),
+      category_id: categoryId,
       occurred_on: fd.get("occurred_on"),
       notes: (fd.get("notes") as string) || undefined,
     });
@@ -90,7 +92,7 @@ export function AddTransactionDialog({ defaultCategoryId, defaultKind, defaultDa
           </div>
           <div>
             <Label>Category</Label>
-            <Select name="category_id" defaultValue={defaultCategoryId}>
+            <Select value={categoryId} onValueChange={setCategoryId}>
               <SelectTrigger><SelectValue placeholder="Pick a category" /></SelectTrigger>
               <SelectContent>
                 {(["income", "expense"] as const).map((kind) => {
@@ -112,8 +114,6 @@ export function AddTransactionDialog({ defaultCategoryId, defaultKind, defaultDa
                 })}
               </SelectContent>
             </Select>
-            {/* Hidden fallback input to ensure FormData has value when default selected */}
-            <input type="hidden" name="category_id" defaultValue={defaultCategoryId} />
           </div>
           <div>
             <Label htmlFor="tx-notes">Notes (optional)</Label>
