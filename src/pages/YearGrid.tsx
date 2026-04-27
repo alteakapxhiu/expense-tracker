@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Download, Upload } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCategories, useTransactionsByYear } from "@/hooks/useFinanceData";
 import { fmtCurrency, MONTHS } from "@/lib/format";
 import { CategoryDrilldown } from "@/components/finance/CategoryDrilldown";
