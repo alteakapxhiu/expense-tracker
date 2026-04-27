@@ -54,7 +54,15 @@ export function AddTransactionDialog({ defaultCategoryId, defaultKind, defaultDa
     if (!user) return;
 
     try {
-      await upsert.mutateAsync({ user_id: user.id, ...parsed.data, notes: parsed.data.notes ?? null });
+      const { description, amount, category_id, occurred_on, notes } = parsed.data;
+      await upsert.mutateAsync({
+        user_id: user.id,
+        description,
+        amount,
+        category_id,
+        occurred_on,
+        notes: notes ?? null,
+      });
       toast.success("Saved");
       setOpen(false);
     } catch (err: any) {
