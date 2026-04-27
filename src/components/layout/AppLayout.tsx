@@ -69,12 +69,15 @@ export default function AppLayout() {
       <main className="flex-1 overflow-x-hidden pt-16 md:pt-0">
         <Outlet />
         {/* Mobile bottom nav */}
-        <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-sidebar border-t border-sidebar-border grid grid-cols-4 px-2 py-2">
+        <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-sidebar border-t border-sidebar-border grid grid-cols-5 px-2 py-2">
           <NavLink to="/" end className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-xs", isActive ? "text-primary" : "text-sidebar-foreground")}>
             <LayoutDashboard className="h-4 w-4" /> Dash
           </NavLink>
           <NavLink to="/year" className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-xs", isActive ? "text-primary" : "text-sidebar-foreground")}>
             <Table2 className="h-4 w-4" /> Year
+          </NavLink>
+          <NavLink to="/to-spend" className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-xs", isActive ? "text-primary" : "text-sidebar-foreground")}>
+            <ListChecks className="h-4 w-4" /> Plan
           </NavLink>
           <NavLink to="/categories" className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-xs", isActive ? "text-primary" : "text-sidebar-foreground")}>
             <Tags className="h-4 w-4" /> Cats
