@@ -4,60 +4,60 @@
 
 @layer base {
   :root {
-    /* Modern finance dashboard — dark by default */
-    --background: 222 27% 7%;
-    --foreground: 210 30% 96%;
+    /* Modern finance dashboard — softer slate + teal */
+    --background: 220 22% 11%;
+    --foreground: 210 25% 92%;
 
-    --card: 222 24% 10%;
-    --card-foreground: 210 30% 96%;
+    --card: 220 20% 14%;
+    --card-foreground: 210 25% 92%;
 
-    --popover: 222 24% 10%;
-    --popover-foreground: 210 30% 96%;
+    --popover: 220 20% 14%;
+    --popover-foreground: 210 25% 92%;
 
-    --primary: 158 76% 48%;
-    --primary-foreground: 222 47% 8%;
-    --primary-glow: 158 80% 60%;
+    --primary: 168 58% 52%;
+    --primary-foreground: 220 30% 10%;
+    --primary-glow: 168 65% 64%;
 
-    --secondary: 222 20% 14%;
-    --secondary-foreground: 210 30% 96%;
+    --secondary: 220 16% 18%;
+    --secondary-foreground: 210 25% 92%;
 
-    --muted: 222 18% 16%;
-    --muted-foreground: 215 16% 65%;
+    --muted: 220 14% 20%;
+    --muted-foreground: 215 14% 68%;
 
-    --accent: 222 20% 16%;
-    --accent-foreground: 210 30% 96%;
+    --accent: 220 16% 20%;
+    --accent-foreground: 210 25% 92%;
 
-    --destructive: 0 72% 58%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 60% 62%;
+    --destructive-foreground: 210 30% 96%;
 
-    --income: 158 76% 48%;
-    --income-foreground: 222 47% 8%;
-    --expense: 0 72% 58%;
-    --expense-foreground: 210 40% 98%;
-    --warning: 38 92% 55%;
+    --income: 160 52% 56%;
+    --income-foreground: 220 30% 10%;
+    --expense: 6 65% 66%;
+    --expense-foreground: 210 30% 96%;
+    --warning: 38 80% 62%;
 
-    --border: 222 18% 18%;
-    --input: 222 18% 18%;
-    --ring: 158 76% 48%;
+    --border: 220 14% 22%;
+    --input: 220 14% 22%;
+    --ring: 168 58% 52%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 222 30% 6%;
-    --sidebar-foreground: 215 16% 75%;
-    --sidebar-primary: 158 76% 48%;
-    --sidebar-primary-foreground: 222 47% 8%;
-    --sidebar-accent: 222 22% 12%;
-    --sidebar-accent-foreground: 210 30% 96%;
-    --sidebar-border: 222 18% 14%;
-    --sidebar-ring: 158 76% 48%;
+    --sidebar-background: 220 24% 9%;
+    --sidebar-foreground: 215 14% 72%;
+    --sidebar-primary: 168 58% 52%;
+    --sidebar-primary-foreground: 220 30% 10%;
+    --sidebar-accent: 220 18% 15%;
+    --sidebar-accent-foreground: 210 25% 92%;
+    --sidebar-border: 220 14% 16%;
+    --sidebar-ring: 168 58% 52%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(158 76% 48%), hsl(170 80% 55%));
-    --gradient-card: linear-gradient(135deg, hsl(222 24% 10%), hsl(222 22% 12%));
-    --gradient-income: linear-gradient(135deg, hsl(158 76% 48% / 0.15), hsl(158 76% 48% / 0));
-    --gradient-expense: linear-gradient(135deg, hsl(0 72% 58% / 0.15), hsl(0 72% 58% / 0));
+    --gradient-primary: linear-gradient(135deg, hsl(168 58% 52%), hsl(190 60% 60%));
+    --gradient-card: linear-gradient(135deg, hsl(220 20% 14%), hsl(220 18% 16%));
+    --gradient-income: linear-gradient(135deg, hsl(160 52% 56% / 0.14), hsl(160 52% 56% / 0));
+    --gradient-expense: linear-gradient(135deg, hsl(6 65% 66% / 0.14), hsl(6 65% 66% / 0));
 
-    --shadow-elegant: 0 10px 40px -10px hsl(158 76% 48% / 0.25);
-    --shadow-card: 0 4px 24px -8px hsl(222 47% 4% / 0.5);
+    --shadow-elegant: 0 10px 40px -12px hsl(168 58% 40% / 0.35);
+    --shadow-card: 0 4px 24px -10px hsl(220 40% 4% / 0.55);
   }
 
   .light {
