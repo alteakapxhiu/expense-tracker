@@ -40,10 +40,6 @@ export default function Dashboard() {
   const totals = useMemo(() => {
     let income = 0, expense = 0;
     for (const t of txs) {
-
-  const totals = useMemo(() => {
-    let income = 0, expense = 0;
-    for (const t of txs) {
       const c = catById.get(t.category_id);
       if (!c) continue;
       if (c.kind === "income") income += Number(t.amount);
