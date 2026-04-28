@@ -22,11 +22,24 @@ export default function Dashboard() {
   const [editing, setEditing] = useState<Transaction | null>(null);
 
   const { data: cats = [] } = useCategories();
-  const { data: txs = [] } = useTransactionsByMonth(year, month0);
+  const { data: monthTxs = [] } = useTransactionsByMonth(year, month0);
   const { data: budgets = [] } = useBudgets();
   const del = useDeleteTransaction();
 
+  const daysInMonth = new Date(year, month0 + 1, 0).getDate();
+  const safeDay = Math.min(day, daysInMonth);
+  const dayKey = `${year}-${String(month0 + 1).padStart(2, "0")}-${String(safeDay).padStart(2, "0")}`;
+
+  const txs = useMemo(
+    () => (view === "day" ? monthTxs.filter((t) => t.occurred_on === dayKey) : monthTxs),
+    [monthTxs, view, dayKey]
+  );
+
   const catById = useMemo(() => new Map(cats.map((c) => [c.id, c])), [cats]);
+
+  const totals = useMemo(() => {
+    let income = 0, expense = 0;
+    for (const t of txs) {
 
   const totals = useMemo(() => {
     let income = 0, expense = 0;
