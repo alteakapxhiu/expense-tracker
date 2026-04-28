@@ -140,17 +140,31 @@ export default function Dashboard() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground text-sm mt-1">Your monthly money snapshot</p>
+          <p className="text-muted-foreground text-sm mt-1">
+            {view === "day" ? "See what you spent on this day" : "Your monthly money snapshot"}
+          </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Tabs value={view} onValueChange={(v) => setView(v as ViewMode)}>
+            <TabsList className="h-9">
+              <TabsTrigger value="month" className="text-xs px-3">Month</TabsTrigger>
+              <TabsTrigger value="day" className="text-xs px-3">Day</TabsTrigger>
+            </TabsList>
+          </Tabs>
           <div className="flex items-center gap-1 surface-card px-2 py-1">
             <Button variant="ghost" size="icon" onClick={goPrev}><ChevronLeft className="h-4 w-4" /></Button>
-            <span className="text-sm font-medium px-3 num min-w-[110px] text-center">{MONTHS[month0]} {year}</span>
+            <span className="text-sm font-medium px-3 num min-w-[160px] text-center">{periodLabel}</span>
             <Button variant="ghost" size="icon" onClick={goNext}><ChevronRight className="h-4 w-4" /></Button>
           </div>
-          <AddTransactionDialog defaultDate={`${year}-${String(month0 + 1).padStart(2, "0")}-15`} />
+          <AddTransactionDialog defaultDate={view === "day" ? dayKey : `${year}-${String(month0 + 1).padStart(2, "0")}-15`} />
         </div>
       </div>
+
+      {view === "day" && (
+        <p className="text-xs text-muted-foreground -mt-4">
+          {txs.length === 0 ? "No transactions on this day." : `${txs.length} transaction${txs.length === 1 ? "" : "s"} on this day.`}
+        </p>
+      )}
 
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
