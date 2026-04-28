@@ -103,11 +103,27 @@ export default function Dashboard() {
   }, [budgets, txs, catById]);
 
   const goPrev = () => {
-    if (month0 === 0) { setYear((y) => y - 1); setMonth0(11); } else setMonth0((m) => m - 1);
+    if (view === "day") {
+      const d = new Date(year, month0, safeDay);
+      d.setDate(d.getDate() - 1);
+      setYear(d.getFullYear()); setMonth0(d.getMonth()); setDay(d.getDate());
+    } else {
+      if (month0 === 0) { setYear((y) => y - 1); setMonth0(11); } else setMonth0((m) => m - 1);
+    }
   };
   const goNext = () => {
-    if (month0 === 11) { setYear((y) => y + 1); setMonth0(0); } else setMonth0((m) => m + 1);
+    if (view === "day") {
+      const d = new Date(year, month0, safeDay);
+      d.setDate(d.getDate() + 1);
+      setYear(d.getFullYear()); setMonth0(d.getMonth()); setDay(d.getDate());
+    } else {
+      if (month0 === 11) { setYear((y) => y + 1); setMonth0(0); } else setMonth0((m) => m + 1);
+    }
   };
+
+  const periodLabel = view === "day"
+    ? new Date(year, month0, safeDay).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })
+    : `${MONTHS[month0]} ${year}`;
 
   const handleDelete = async (id: string) => {
     try {
