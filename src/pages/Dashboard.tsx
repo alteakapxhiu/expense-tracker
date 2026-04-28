@@ -3,10 +3,9 @@ import { useCategories, useTransactionsByMonth, useDeleteTransaction, useBudgets
 import { fmtCurrency, MONTHS } from "@/lib/format";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Wallet, AlertTriangle, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Wallet, AlertTriangle, Trash2, Pencil, StickyNote } from "lucide-react";
 import { AddTransactionDialog } from "@/components/finance/AddTransactionDialog";
 import { CategoryDrilldown } from "@/components/finance/CategoryDrilldown";
-import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import type { Category, Transaction } from "@/types/db";
 import { toast } from "sonner";
 
