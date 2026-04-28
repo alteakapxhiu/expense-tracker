@@ -1,11 +1,13 @@
 import { Navigate, NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Wallet, LayoutDashboard, Table2, Tags, LogOut, Target, ListChecks } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
+import { Wallet, LayoutDashboard, Table2, Tags, LogOut, Target, ListChecks, BarChart3, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export default function AppLayout() {
   const { user, loading, signOut } = useAuth();
+  const { theme, toggle } = useTheme();
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading…</div>;
   if (!user) return <Navigate to="/auth" replace />;
 
@@ -33,18 +35,25 @@ export default function AppLayout() {
           <NavLink to="/year" className={navCls}>
             <Table2 className="h-4 w-4" /> Year grid
           </NavLink>
+          <NavLink to="/insights" className={navCls}>
+            <BarChart3 className="h-4 w-4" /> Insights
+          </NavLink>
+          <NavLink to="/to-spend" className={navCls}>
+            <ListChecks className="h-4 w-4" /> To Spend
+          </NavLink>
           <NavLink to="/categories" className={navCls}>
             <Tags className="h-4 w-4" /> Categories
           </NavLink>
           <NavLink to="/budgets" className={navCls}>
             <Target className="h-4 w-4" /> Budgets
           </NavLink>
-          <NavLink to="/to-spend" className={navCls}>
-            <ListChecks className="h-4 w-4" /> To Spend
-          </NavLink>
         </nav>
-        <div className="mt-4 pt-4 border-t border-sidebar-border">
-          <div className="px-2 mb-2">
+        <div className="mt-4 pt-4 border-t border-sidebar-border space-y-2">
+          <Button variant="ghost" size="sm" onClick={toggle} className="w-full justify-start text-sidebar-foreground">
+            {theme === "dark" ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
+            {theme === "dark" ? "Light mode" : "Dark mode"}
+          </Button>
+          <div className="px-2">
             <p className="text-xs text-sidebar-foreground/70 truncate">{user.email}</p>
           </div>
           <Button variant="ghost" size="sm" onClick={signOut} className="w-full justify-start text-sidebar-foreground">
@@ -61,9 +70,14 @@ export default function AppLayout() {
           </div>
           <span className="font-semibold">Ledgerly</span>
         </div>
-        <Button variant="ghost" size="sm" onClick={signOut}>
-          <LogOut className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" onClick={toggle} aria-label="Toggle theme">
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
+          <Button variant="ghost" size="icon" onClick={signOut} aria-label="Sign out">
+            <LogOut className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       <main className="flex-1 overflow-x-hidden pt-16 md:pt-0">
@@ -76,11 +90,11 @@ export default function AppLayout() {
           <NavLink to="/year" className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-xs", isActive ? "text-primary" : "text-sidebar-foreground")}>
             <Table2 className="h-4 w-4" /> Year
           </NavLink>
+          <NavLink to="/insights" className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-xs", isActive ? "text-primary" : "text-sidebar-foreground")}>
+            <BarChart3 className="h-4 w-4" /> Stats
+          </NavLink>
           <NavLink to="/to-spend" className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-xs", isActive ? "text-primary" : "text-sidebar-foreground")}>
             <ListChecks className="h-4 w-4" /> Plan
-          </NavLink>
-          <NavLink to="/categories" className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-xs", isActive ? "text-primary" : "text-sidebar-foreground")}>
-            <Tags className="h-4 w-4" /> Cats
           </NavLink>
           <NavLink to="/budgets" className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-xs", isActive ? "text-primary" : "text-sidebar-foreground")}>
             <Target className="h-4 w-4" /> Budget
