@@ -6,20 +6,34 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Wallet, AlertTriangle, Trash2, Pencil, StickyNote } from "lucide-react";
 import { AddTransactionDialog } from "@/components/finance/AddTransactionDialog";
 import { CategoryDrilldown } from "@/components/finance/CategoryDrilldown";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Category, Transaction } from "@/types/db";
 import { toast } from "sonner";
+
+type ViewMode = "month" | "day";
 
 export default function Dashboard() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month0, setMonth0] = useState(now.getMonth());
+  const [day, setDay] = useState(now.getDate());
+  const [view, setView] = useState<ViewMode>("month");
   const [drilldown, setDrilldown] = useState<{ kind: "income" | "expense"; group: string } | null>(null);
   const [editing, setEditing] = useState<Transaction | null>(null);
 
   const { data: cats = [] } = useCategories();
-  const { data: txs = [] } = useTransactionsByMonth(year, month0);
+  const { data: monthTxs = [] } = useTransactionsByMonth(year, month0);
   const { data: budgets = [] } = useBudgets();
   const del = useDeleteTransaction();
+
+  const daysInMonth = new Date(year, month0 + 1, 0).getDate();
+  const safeDay = Math.min(day, daysInMonth);
+  const dayKey = `${year}-${String(month0 + 1).padStart(2, "0")}-${String(safeDay).padStart(2, "0")}`;
+
+  const txs = useMemo(
+    () => (view === "day" ? monthTxs.filter((t) => t.occurred_on === dayKey) : monthTxs),
+    [monthTxs, view, dayKey]
+  );
 
   const catById = useMemo(() => new Map(cats.map((c) => [c.id, c])), [cats]);
 
@@ -89,11 +103,27 @@ export default function Dashboard() {
   }, [budgets, txs, catById]);
 
   const goPrev = () => {
-    if (month0 === 0) { setYear((y) => y - 1); setMonth0(11); } else setMonth0((m) => m - 1);
+    if (view === "day") {
+      const d = new Date(year, month0, safeDay);
+      d.setDate(d.getDate() - 1);
+      setYear(d.getFullYear()); setMonth0(d.getMonth()); setDay(d.getDate());
+    } else {
+      if (month0 === 0) { setYear((y) => y - 1); setMonth0(11); } else setMonth0((m) => m - 1);
+    }
   };
   const goNext = () => {
-    if (month0 === 11) { setYear((y) => y + 1); setMonth0(0); } else setMonth0((m) => m + 1);
+    if (view === "day") {
+      const d = new Date(year, month0, safeDay);
+      d.setDate(d.getDate() + 1);
+      setYear(d.getFullYear()); setMonth0(d.getMonth()); setDay(d.getDate());
+    } else {
+      if (month0 === 11) { setYear((y) => y + 1); setMonth0(0); } else setMonth0((m) => m + 1);
+    }
   };
+
+  const periodLabel = view === "day"
+    ? new Date(year, month0, safeDay).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })
+    : `${MONTHS[month0]} ${year}`;
 
   const handleDelete = async (id: string) => {
     try {
@@ -110,17 +140,31 @@ export default function Dashboard() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground text-sm mt-1">Your monthly money snapshot</p>
+          <p className="text-muted-foreground text-sm mt-1">
+            {view === "day" ? "See what you spent on this day" : "Your monthly money snapshot"}
+          </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Tabs value={view} onValueChange={(v) => setView(v as ViewMode)}>
+            <TabsList className="h-9">
+              <TabsTrigger value="month" className="text-xs px-3">Month</TabsTrigger>
+              <TabsTrigger value="day" className="text-xs px-3">Day</TabsTrigger>
+            </TabsList>
+          </Tabs>
           <div className="flex items-center gap-1 surface-card px-2 py-1">
             <Button variant="ghost" size="icon" onClick={goPrev}><ChevronLeft className="h-4 w-4" /></Button>
-            <span className="text-sm font-medium px-3 num min-w-[110px] text-center">{MONTHS[month0]} {year}</span>
+            <span className="text-sm font-medium px-3 num min-w-[160px] text-center">{periodLabel}</span>
             <Button variant="ghost" size="icon" onClick={goNext}><ChevronRight className="h-4 w-4" /></Button>
           </div>
-          <AddTransactionDialog defaultDate={`${year}-${String(month0 + 1).padStart(2, "0")}-15`} />
+          <AddTransactionDialog defaultDate={view === "day" ? dayKey : `${year}-${String(month0 + 1).padStart(2, "0")}-15`} />
         </div>
       </div>
+
+      {view === "day" && (
+        <p className="text-xs text-muted-foreground -mt-4">
+          {txs.length === 0 ? "No transactions on this day." : `${txs.length} transaction${txs.length === 1 ? "" : "s"} on this day.`}
+        </p>
+      )}
 
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
