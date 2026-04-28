@@ -29,6 +29,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
 export const useTheme = () => {
   const ctx = useContext(ThemeContext);
-  if (!ctx) throw new Error("useTheme must be used inside ThemeProvider");
+  if (!ctx) {
+    // Fallback so components render outside the provider during HMR
+    return { theme: "dark" as Theme, toggle: () => {}, setTheme: () => {} };
+  }
   return ctx;
 };
