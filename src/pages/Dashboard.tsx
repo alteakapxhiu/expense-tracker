@@ -6,13 +6,18 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Wallet, AlertTriangle, Trash2, Pencil, StickyNote } from "lucide-react";
 import { AddTransactionDialog } from "@/components/finance/AddTransactionDialog";
 import { CategoryDrilldown } from "@/components/finance/CategoryDrilldown";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Category, Transaction } from "@/types/db";
 import { toast } from "sonner";
+
+type ViewMode = "month" | "day";
 
 export default function Dashboard() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month0, setMonth0] = useState(now.getMonth());
+  const [day, setDay] = useState(now.getDate());
+  const [view, setView] = useState<ViewMode>("month");
   const [drilldown, setDrilldown] = useState<{ kind: "income" | "expense"; group: string } | null>(null);
   const [editing, setEditing] = useState<Transaction | null>(null);
 
