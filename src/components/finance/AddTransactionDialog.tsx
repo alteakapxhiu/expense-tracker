@@ -1,13 +1,14 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCategories, useUpsertTransaction } from "@/hooks/useFinanceData";
-import type { Category } from "@/types/db";
+import type { Category, Transaction } from "@/types/db";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -24,15 +25,33 @@ type Props = {
   defaultKind?: "income" | "expense";
   defaultDate?: string;
   trigger?: React.ReactNode;
+  editing?: Transaction | null;
+  open?: boolean;
+  onOpenChange?: (o: boolean) => void;
 };
 
-export function AddTransactionDialog({ defaultCategoryId, defaultKind, defaultDate, trigger }: Props) {
+export function AddTransactionDialog({
+  defaultCategoryId,
+  defaultKind,
+  defaultDate,
+  trigger,
+  editing,
+  open: controlledOpen,
+  onOpenChange,
+}: Props) {
   const { user } = useAuth();
   const { data: cats = [] } = useCategories();
   const upsert = useUpsertTransaction();
-  const [open, setOpen] = useState(false);
-  const [categoryId, setCategoryId] = useState<string | undefined>(defaultCategoryId);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = onOpenChange ?? setUncontrolledOpen;
+
+  const [categoryId, setCategoryId] = useState<string | undefined>(editing?.category_id ?? defaultCategoryId);
   const today = new Date().toISOString().slice(0, 10);
+
+  useEffect(() => {
+    if (open) setCategoryId(editing?.category_id ?? defaultCategoryId);
+  }, [open, editing, defaultCategoryId]);
 
   const filteredCats = useMemo(
     () => (defaultKind ? cats.filter((c) => c.kind === defaultKind) : cats),
@@ -56,6 +75,7 @@ export function AddTransactionDialog({ defaultCategoryId, defaultKind, defaultDa
     try {
       const { description, amount, category_id, occurred_on, notes } = parsed.data;
       await upsert.mutateAsync({
+        id: editing?.id,
         user_id: user.id,
         description,
         amount,
@@ -63,7 +83,7 @@ export function AddTransactionDialog({ defaultCategoryId, defaultKind, defaultDa
         occurred_on,
         notes: notes ?? null,
       });
-      toast.success("Saved");
+      toast.success(editing ? "Updated" : "Saved");
       setOpen(false);
     } catch (err: any) {
       toast.error(err.message ?? "Failed to save");
@@ -72,30 +92,32 @@ export function AddTransactionDialog({ defaultCategoryId, defaultKind, defaultDa
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger ?? (
-          <Button size="sm" className="gap-1.5">
-            <Plus className="h-4 w-4" /> Add transaction
-          </Button>
-        )}
-      </DialogTrigger>
+      {controlledOpen === undefined && (
+        <DialogTrigger asChild>
+          {trigger ?? (
+            <Button size="sm" className="gap-1.5">
+              <Plus className="h-4 w-4" /> Add transaction
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New transaction</DialogTitle>
+          <DialogTitle>{editing ? "Edit transaction" : "New transaction"}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="tx-desc">Description</Label>
-            <Input id="tx-desc" name="description" placeholder="e.g. Claude Code subscription" required />
+            <Input id="tx-desc" name="description" defaultValue={editing?.description ?? ""} placeholder="e.g. Claude Code subscription" required />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label htmlFor="tx-amount">Amount (USD)</Label>
-              <Input id="tx-amount" name="amount" type="number" step="0.01" min="0.01" required />
+              <Input id="tx-amount" name="amount" type="number" step="0.01" min="0.01" defaultValue={editing?.amount ?? ""} required />
             </div>
             <div>
               <Label htmlFor="tx-date">Date</Label>
-              <Input id="tx-date" name="occurred_on" type="date" defaultValue={defaultDate ?? today} required />
+              <Input id="tx-date" name="occurred_on" type="date" defaultValue={editing?.occurred_on ?? defaultDate ?? today} required />
             </div>
           </div>
           <div>
@@ -125,10 +147,10 @@ export function AddTransactionDialog({ defaultCategoryId, defaultKind, defaultDa
           </div>
           <div>
             <Label htmlFor="tx-notes">Notes (optional)</Label>
-            <Input id="tx-notes" name="notes" />
+            <Textarea id="tx-notes" name="notes" rows={2} defaultValue={editing?.notes ?? ""} placeholder="Any extra detail…" />
           </div>
           <Button type="submit" className="w-full" disabled={upsert.isPending}>
-            {upsert.isPending ? "Saving…" : "Save transaction"}
+            {upsert.isPending ? "Saving…" : editing ? "Save changes" : "Save transaction"}
           </Button>
         </form>
       </DialogContent>

@@ -3,10 +3,9 @@ import { useCategories, useTransactionsByMonth, useDeleteTransaction, useBudgets
 import { fmtCurrency, MONTHS } from "@/lib/format";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Wallet, AlertTriangle, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Wallet, AlertTriangle, Trash2, Pencil, StickyNote } from "lucide-react";
 import { AddTransactionDialog } from "@/components/finance/AddTransactionDialog";
 import { CategoryDrilldown } from "@/components/finance/CategoryDrilldown";
-import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import type { Category, Transaction } from "@/types/db";
 import { toast } from "sonner";
 
@@ -15,6 +14,7 @@ export default function Dashboard() {
   const [year, setYear] = useState(now.getFullYear());
   const [month0, setMonth0] = useState(now.getMonth());
   const [drilldown, setDrilldown] = useState<{ kind: "income" | "expense"; group: string } | null>(null);
+  const [editing, setEditing] = useState<Transaction | null>(null);
 
   const { data: cats = [] } = useCategories();
   const { data: txs = [] } = useTransactionsByMonth(year, month0);
@@ -168,45 +168,6 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card className="p-5 surface-card">
-          <h3 className="font-medium mb-4">Expense breakdown</h3>
-          {expensePieData.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-12 text-center">No expenses yet this month.</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={260}>
-              <PieChart>
-                <Pie data={expensePieData} dataKey="value" nameKey="name" innerRadius={55} outerRadius={95} paddingAngle={2}>
-                  {expensePieData.map((e, i) => <Cell key={i} fill={e.color} />)}
-                </Pie>
-                <Tooltip
-                  contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
-                  formatter={(v: number) => fmtCurrency(v)}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          )}
-        </Card>
-
-        <Card className="p-5 surface-card">
-          <h3 className="font-medium mb-4">Income vs Expenses</h3>
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={[{ month: MONTHS[month0], income: totals.income, expense: totals.expense }]}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-              <YAxis stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `$${v}`} />
-              <Tooltip
-                contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
-                formatter={(v: number) => fmtCurrency(v)}
-              />
-              <Bar dataKey="income" fill="hsl(var(--income))" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="expense" fill="hsl(var(--expense))" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-      </div>
-
       {/* Recent transactions */}
       <Card className="p-5 surface-card">
         <h3 className="font-medium mb-4">All transactions this month</h3>
@@ -217,18 +178,27 @@ export default function Dashboard() {
             {txs.map((t: Transaction) => {
               const c = catById.get(t.category_id);
               return (
-                <div key={t.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: c?.color }} />
-                    <div className="min-w-0">
+                <div key={t.id} className="flex items-start justify-between gap-3 py-2 border-b border-border/50 last:border-0">
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
+                    <span className="h-2 w-2 rounded-full shrink-0 mt-2" style={{ backgroundColor: c?.color }} />
+                    <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium truncate">{t.description}</p>
                       <p className="text-xs text-muted-foreground">{c?.name} · {new Date(t.occurred_on).toLocaleDateString()}</p>
+                      {t.notes && (
+                        <p className="text-xs text-muted-foreground/90 mt-1 flex items-start gap-1">
+                          <StickyNote className="h-3 w-3 mt-0.5 shrink-0" />
+                          <span className="italic">{t.notes}</span>
+                        </p>
+                      )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className={`text-sm font-medium num ${c?.kind === "income" ? "text-income" : "text-expense"}`}>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className={`text-sm font-medium num mr-1 ${c?.kind === "income" ? "text-income" : "text-expense"}`}>
                       {c?.kind === "income" ? "+" : "-"}{fmtCurrency(Number(t.amount))}
                     </span>
+                    <Button variant="ghost" size="icon" onClick={() => setEditing(t)} className="h-8 w-8 text-muted-foreground hover:text-primary">
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
                     <Button variant="ghost" size="icon" onClick={() => handleDelete(t.id)} className="h-8 w-8 text-muted-foreground hover:text-expense">
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
@@ -239,6 +209,14 @@ export default function Dashboard() {
           </div>
         )}
       </Card>
+
+      {editing && (
+        <AddTransactionDialog
+          editing={editing}
+          open={!!editing}
+          onOpenChange={(o) => !o && setEditing(null)}
+        />
+      )}
 
       {drilldown && (
         <CategoryDrilldown
