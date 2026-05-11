@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useCurrencyTick } from "@/hooks/useCurrency";
 import { useCategories, useBudgets, useInvalidateData, useTransactionsByMonth } from "@/hooks/useFinanceData";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";

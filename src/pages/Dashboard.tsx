@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useCurrencyTick } from "@/hooks/useCurrency";
 import { useCategories, useTransactionsByMonth, useDeleteTransaction, useBudgets } from "@/hooks/useFinanceData";
 import { fmtCurrency, MONTHS } from "@/lib/format";
 import { Card } from "@/components/ui/card";

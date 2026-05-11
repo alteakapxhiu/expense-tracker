@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useCurrencyTick } from "@/hooks/useCurrency";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
