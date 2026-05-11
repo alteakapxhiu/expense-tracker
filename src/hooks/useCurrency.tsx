@@ -26,10 +26,11 @@ const FALLBACK_RATES: Record<CurrencyCode, number> = {
 };
 
 // Module-level mirror so fmtCurrency (used everywhere) can read it without prop drilling
+const initialCurrency: CurrencyCode = (localStorage.getItem("currency") as CurrencyCode) || "ALL";
 export const currencyStore: { code: CurrencyCode; rate: number; symbol: string } = {
-  code: (localStorage.getItem("currency") as CurrencyCode) || "USD",
-  rate: 1,
-  symbol: CURRENCIES.find((c) => c.code === ((localStorage.getItem("currency") as CurrencyCode) || "USD"))?.symbol || "$",
+  code: initialCurrency,
+  rate: FALLBACK_RATES[initialCurrency] ?? 1,
+  symbol: CURRENCIES.find((c) => c.code === initialCurrency)?.symbol || "L",
 };
 
 type Ctx = {
