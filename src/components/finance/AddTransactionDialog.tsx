@@ -118,18 +118,18 @@ export function AddTransactionDialog({
         </DialogTrigger>
       )}
       <DialogContent className="sm:max-w-md p-0 gap-0 max-h-[92vh] overflow-y-auto">
-        <DialogHeader className="px-5 pt-5 pb-3">
-          <DialogTitle className="text-xl">{editing ? "Edit transaction" : "New transaction"}</DialogTitle>
+        <DialogHeader className="px-4 pt-4 pb-2 sm:px-5 sm:pt-5 sm:pb-3">
+          <DialogTitle className="text-base sm:text-xl">{editing ? "Edit transaction" : "New transaction"}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="px-5 pb-5 space-y-5">
+        <form onSubmit={handleSubmit} className="px-4 pb-4 sm:px-5 sm:pb-5 space-y-3 sm:space-y-5">
           {/* Kind segmented toggle */}
-          <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-muted/60">
+          <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-muted/60">
             <button
               type="button"
               onClick={() => setKind("expense")}
               className={cn(
-                "flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center justify-center gap-1.5 py-1.5 sm:py-2.5 rounded-lg text-sm font-medium transition-colors",
                 kind === "expense" ? "bg-background shadow-sm text-expense" : "text-muted-foreground"
               )}
             >
@@ -139,7 +139,7 @@ export function AddTransactionDialog({
               type="button"
               onClick={() => setKind("income")}
               className={cn(
-                "flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center justify-center gap-1.5 py-1.5 sm:py-2.5 rounded-lg text-sm font-medium transition-colors",
                 kind === "income" ? "bg-background shadow-sm text-income" : "text-muted-foreground"
               )}
             >
@@ -149,9 +149,14 @@ export function AddTransactionDialog({
 
           {/* Amount big input */}
           <div>
-            <Label className="text-xs uppercase tracking-wide text-muted-foreground">Amount</Label>
-            <div className="relative mt-1.5">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-semibold text-muted-foreground pointer-events-none">
+            <div className="flex items-center justify-between">
+              <Label className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">Amount ({currency})</Label>
+              {usdPreview !== null && currency !== "USD" && (
+                <span className="text-[10px] sm:text-xs text-muted-foreground num">≈ ${usdPreview.toFixed(2)}</span>
+              )}
+            </div>
+            <div className="relative mt-1">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xl sm:text-2xl font-semibold text-muted-foreground pointer-events-none">
                 {symbol}
               </span>
               <Input
@@ -161,34 +166,28 @@ export function AddTransactionDialog({
                 placeholder="0.00"
                 value={amountInput}
                 onChange={(e) => setAmountInput(e.target.value.replace(/[^\d.,]/g, ""))}
-                className="h-16 text-3xl font-semibold pl-12 pr-4 num text-right tracking-tight"
+                className="h-12 sm:h-16 text-xl sm:text-3xl font-semibold pl-10 sm:pl-12 pr-3 num text-right tracking-tight"
               />
-            </div>
-            <div className="flex items-center justify-between mt-1.5 text-xs text-muted-foreground">
-              <span>{currency}</span>
-              {usdPreview !== null && currency !== "USD" && (
-                <span className="num">≈ ${usdPreview.toFixed(2)} stored</span>
-              )}
             </div>
           </div>
 
           {/* Description */}
           <div>
-            <Label htmlFor="tx-desc" className="text-xs uppercase tracking-wide text-muted-foreground">What for?</Label>
+            <Label htmlFor="tx-desc" className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">What for?</Label>
             <Input
               id="tx-desc"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="e.g. Groceries at Spar"
-              className="h-12 mt-1.5"
+              className="h-10 sm:h-12 mt-1"
               autoComplete="off"
             />
           </div>
 
           {/* Category chips */}
           <div>
-            <Label className="text-xs uppercase tracking-wide text-muted-foreground">Category</Label>
-            <div className="flex flex-wrap gap-2 mt-1.5">
+            <Label className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">Category</Label>
+            <div className="flex flex-wrap gap-1.5 mt-1 max-h-24 sm:max-h-none overflow-y-auto">
               {filteredCats.map((c: Category) => {
                 const active = categoryId === c.id;
                 return (
@@ -197,32 +196,32 @@ export function AddTransactionDialog({
                     key={c.id}
                     onClick={() => setCategoryId(c.id)}
                     className={cn(
-                      "flex items-center gap-2 px-3 py-2 rounded-full border text-sm transition-all",
+                      "flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-2 rounded-full border text-xs sm:text-sm transition-all",
                       active
                         ? "border-primary bg-primary/10 text-foreground shadow-sm"
                         : "border-border bg-background text-muted-foreground hover:border-primary/40"
                     )}
                   >
-                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: c.color }} />
+                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: c.color }} />
                     {c.name}
                   </button>
                 );
               })}
               {filteredCats.length === 0 && (
-                <p className="text-xs text-muted-foreground py-2">No {kind} categories yet. Add one in Categories.</p>
+                <p className="text-xs text-muted-foreground py-2">No {kind} categories yet.</p>
               )}
             </div>
           </div>
 
           {/* Date with quick chips */}
           <div>
-            <Label htmlFor="tx-date" className="text-xs uppercase tracking-wide text-muted-foreground">When</Label>
-            <div className="flex gap-2 mt-1.5">
+            <Label htmlFor="tx-date" className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">When</Label>
+            <div className="flex gap-1.5 mt-1">
               <button
                 type="button"
                 onClick={() => setOccurredOn(today)}
                 className={cn(
-                  "px-3 h-12 rounded-lg text-sm border transition-colors",
+                  "px-2.5 h-10 sm:h-12 rounded-lg text-xs sm:text-sm border transition-colors",
                   occurredOn === today ? "border-primary bg-primary/10" : "border-border"
                 )}
               >Today</button>
@@ -230,23 +229,25 @@ export function AddTransactionDialog({
                 type="button"
                 onClick={() => setOccurredOn(yesterday)}
                 className={cn(
-                  "px-3 h-12 rounded-lg text-sm border transition-colors",
+                  "px-2.5 h-10 sm:h-12 rounded-lg text-xs sm:text-sm border transition-colors",
                   occurredOn === yesterday ? "border-primary bg-primary/10" : "border-border"
                 )}
-              >Yesterday</button>
+              >Yest.</button>
               <Input
                 id="tx-date"
                 type="date"
                 value={occurredOn}
                 onChange={(e) => setOccurredOn(e.target.value)}
-                className="h-12 flex-1"
+                className="h-10 sm:h-12 flex-1 text-xs sm:text-sm"
               />
             </div>
           </div>
 
           {/* Notes */}
-          <div>
-            <Label htmlFor="tx-notes" className="text-xs uppercase tracking-wide text-muted-foreground">Notes (optional)</Label>
+          <details className="group">
+            <summary className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground cursor-pointer list-none flex items-center gap-1">
+              <span className="group-open:rotate-90 transition-transform inline-block">▸</span> Notes (optional)
+            </summary>
             <Textarea
               id="tx-notes"
               rows={2}
@@ -255,9 +256,9 @@ export function AddTransactionDialog({
               placeholder="Any extra detail…"
               className="mt-1.5"
             />
-          </div>
+          </details>
 
-          <Button type="submit" className="w-full h-12 text-base" disabled={upsert.isPending}>
+          <Button type="submit" className="w-full h-11 sm:h-12 text-sm sm:text-base" disabled={upsert.isPending}>
             {upsert.isPending ? "Saving…" : editing ? "Save changes" : "Save transaction"}
           </Button>
         </form>
