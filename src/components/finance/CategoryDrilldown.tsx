@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { useCurrencyTick } from "@/hooks/useCurrency";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
