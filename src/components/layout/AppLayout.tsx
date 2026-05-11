@@ -53,6 +53,17 @@ export default function AppLayout() {
           </NavLink>
         </nav>
         <div className="mt-4 pt-4 border-t border-sidebar-border space-y-2">
+          <div className="px-1">
+            <label className="text-xs text-sidebar-foreground/70 mb-1 block px-1">Currency</label>
+            <Select value={currency} onValueChange={(v) => setCurrency(v as CurrencyCode)}>
+              <SelectTrigger className="h-9 bg-sidebar-accent/40 border-sidebar-border"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {CURRENCIES.map((c) => (
+                  <SelectItem key={c.code} value={c.code}>{c.code} — {c.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <Button variant="ghost" size="sm" onClick={toggle} className="w-full justify-start text-sidebar-foreground">
             {theme === "dark" ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
             {theme === "dark" ? "Light mode" : "Dark mode"}
@@ -75,6 +86,14 @@ export default function AppLayout() {
           <span className="font-semibold">Ledgerly</span>
         </div>
         <div className="flex items-center gap-1">
+          <Select value={currency} onValueChange={(v) => setCurrency(v as CurrencyCode)}>
+            <SelectTrigger className="h-8 w-[78px] text-xs px-2"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {CURRENCIES.map((c) => (
+                <SelectItem key={c.code} value={c.code}>{c.code}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button variant="ghost" size="icon" onClick={toggle} aria-label="Toggle theme">
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
