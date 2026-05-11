@@ -1,13 +1,17 @@
 import { Navigate, NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
+import { useCurrency, useCurrencyTick, CURRENCIES, CurrencyCode } from "@/hooks/useCurrency";
 import { Wallet, LayoutDashboard, Table2, Tags, LogOut, Target, ListChecks, BarChart3, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 export default function AppLayout() {
   const { user, loading, signOut } = useAuth();
   const { theme, toggle } = useTheme();
+  const { currency, setCurrency } = useCurrency();
+  useCurrencyTick();
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading…</div>;
   if (!user) return <Navigate to="/auth" replace />;
 
@@ -49,6 +53,17 @@ export default function AppLayout() {
           </NavLink>
         </nav>
         <div className="mt-4 pt-4 border-t border-sidebar-border space-y-2">
+          <div className="px-1">
+            <label className="text-xs text-sidebar-foreground/70 mb-1 block px-1">Currency</label>
+            <Select value={currency} onValueChange={(v) => setCurrency(v as CurrencyCode)}>
+              <SelectTrigger className="h-9 bg-sidebar-accent/40 border-sidebar-border"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {CURRENCIES.map((c) => (
+                  <SelectItem key={c.code} value={c.code}>{c.code} — {c.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <Button variant="ghost" size="sm" onClick={toggle} className="w-full justify-start text-sidebar-foreground">
             {theme === "dark" ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
             {theme === "dark" ? "Light mode" : "Dark mode"}
@@ -71,6 +86,14 @@ export default function AppLayout() {
           <span className="font-semibold">Ledgerly</span>
         </div>
         <div className="flex items-center gap-1">
+          <Select value={currency} onValueChange={(v) => setCurrency(v as CurrencyCode)}>
+            <SelectTrigger className="h-8 w-[78px] text-xs px-2"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {CURRENCIES.map((c) => (
+                <SelectItem key={c.code} value={c.code}>{c.code}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button variant="ghost" size="icon" onClick={toggle} aria-label="Toggle theme">
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
@@ -81,7 +104,7 @@ export default function AppLayout() {
       </div>
 
       <main className="flex-1 overflow-x-hidden pt-16 md:pt-0">
-        <Outlet />
+        <CurrencyOutlet />
         {/* Mobile bottom nav */}
         <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-sidebar border-t border-sidebar-border grid grid-cols-5 px-2 py-2">
           <NavLink to="/" end className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-xs", isActive ? "text-primary" : "text-sidebar-foreground")}>
@@ -105,3 +128,9 @@ export default function AppLayout() {
     </div>
   );
 }
+
+function CurrencyOutlet() {
+  const { currency, rate } = useCurrency();
+  return <div key={`${currency}-${rate}`}><Outlet /></div>;
+}
+
