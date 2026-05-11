@@ -259,8 +259,6 @@ export function AddTransactionDialog({
           </details>
 
           <Button type="submit" className="w-full h-11 sm:h-12 text-sm sm:text-base" disabled={upsert.isPending}>
-
-          <Button type="submit" className="w-full h-12 text-base" disabled={upsert.isPending}>
             {upsert.isPending ? "Saving…" : editing ? "Save changes" : "Save transaction"}
           </Button>
         </form>
