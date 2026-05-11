@@ -1,13 +1,17 @@
 import { Navigate, NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
+import { useCurrency, useCurrencyTick, CURRENCIES, CurrencyCode } from "@/hooks/useCurrency";
 import { Wallet, LayoutDashboard, Table2, Tags, LogOut, Target, ListChecks, BarChart3, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 export default function AppLayout() {
   const { user, loading, signOut } = useAuth();
   const { theme, toggle } = useTheme();
+  const { currency, setCurrency } = useCurrency();
+  useCurrencyTick();
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading…</div>;
   if (!user) return <Navigate to="/auth" replace />;
 
