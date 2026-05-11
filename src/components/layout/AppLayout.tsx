@@ -128,3 +128,9 @@ export default function AppLayout() {
     </div>
   );
 }
+
+function CurrencyOutlet() {
+  const { currency, rate } = useCurrency();
+  return <div key={`${currency}-${rate}`}><Outlet /></div>;
+}
+
