@@ -1,12 +1,26 @@
-export const fmtCurrency = (n: number, opts: { signed?: boolean } = {}) => {
-  const abs = Math.abs(n);
-  const s = abs.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 });
-  if (opts.signed) return n < 0 ? `-${s}` : `+${s}`;
-  return n < 0 ? `-${s}` : s;
+import { currencyStore } from "@/hooks/useCurrency";
+
+export const fmtCurrency = (usdAmount: number, opts: { signed?: boolean; raw?: boolean } = {}) => {
+  const { code, rate, symbol } = currencyStore;
+  // opts.raw means amount is already in the target currency, don't convert
+  const converted = opts.raw ? usdAmount : usdAmount * rate;
+  const abs = Math.abs(converted);
+  const useNoDecimals = code === "ALL" || code === "JPY";
+  const formatted = abs.toLocaleString("en-US", {
+    minimumFractionDigits: useNoDecimals ? 0 : 2,
+    maximumFractionDigits: useNoDecimals ? 0 : 2,
+  });
+  const withSymbol = code === "ALL" ? `${formatted} L` : code === "CHF" ? `CHF ${formatted}` : `${symbol}${formatted}`;
+  if (opts.signed) return converted < 0 ? `-${withSymbol}` : `+${withSymbol}`;
+  return converted < 0 ? `-${withSymbol}` : withSymbol;
 };
 
-export const fmtCompact = (n: number) =>
-  Math.abs(n).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0, notation: "compact" });
+export const fmtCompact = (usdAmount: number) => {
+  const { code, rate, symbol } = currencyStore;
+  const converted = usdAmount * rate;
+  const formatted = Math.abs(converted).toLocaleString("en-US", { maximumFractionDigits: 0, notation: "compact" });
+  return code === "ALL" ? `${formatted} L` : code === "CHF" ? `CHF ${formatted}` : `${symbol}${formatted}`;
+};
 
 export const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
 

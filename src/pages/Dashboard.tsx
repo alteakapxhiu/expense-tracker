@@ -3,23 +3,37 @@ import { useCategories, useTransactionsByMonth, useDeleteTransaction, useBudgets
 import { fmtCurrency, MONTHS } from "@/lib/format";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Wallet, AlertTriangle, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Wallet, AlertTriangle, Trash2, Pencil, StickyNote } from "lucide-react";
 import { AddTransactionDialog } from "@/components/finance/AddTransactionDialog";
 import { CategoryDrilldown } from "@/components/finance/CategoryDrilldown";
-import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Category, Transaction } from "@/types/db";
 import { toast } from "sonner";
+
+type ViewMode = "month" | "day";
 
 export default function Dashboard() {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month0, setMonth0] = useState(now.getMonth());
+  const [day, setDay] = useState(now.getDate());
+  const [view, setView] = useState<ViewMode>("month");
   const [drilldown, setDrilldown] = useState<{ kind: "income" | "expense"; group: string } | null>(null);
+  const [editing, setEditing] = useState<Transaction | null>(null);
 
   const { data: cats = [] } = useCategories();
-  const { data: txs = [] } = useTransactionsByMonth(year, month0);
+  const { data: monthTxs = [] } = useTransactionsByMonth(year, month0);
   const { data: budgets = [] } = useBudgets();
   const del = useDeleteTransaction();
+
+  const daysInMonth = new Date(year, month0 + 1, 0).getDate();
+  const safeDay = Math.min(day, daysInMonth);
+  const dayKey = `${year}-${String(month0 + 1).padStart(2, "0")}-${String(safeDay).padStart(2, "0")}`;
+
+  const txs = useMemo(
+    () => (view === "day" ? monthTxs.filter((t) => t.occurred_on === dayKey) : monthTxs),
+    [monthTxs, view, dayKey]
+  );
 
   const catById = useMemo(() => new Map(cats.map((c) => [c.id, c])), [cats]);
 
@@ -89,11 +103,27 @@ export default function Dashboard() {
   }, [budgets, txs, catById]);
 
   const goPrev = () => {
-    if (month0 === 0) { setYear((y) => y - 1); setMonth0(11); } else setMonth0((m) => m - 1);
+    if (view === "day") {
+      const d = new Date(year, month0, safeDay);
+      d.setDate(d.getDate() - 1);
+      setYear(d.getFullYear()); setMonth0(d.getMonth()); setDay(d.getDate());
+    } else {
+      if (month0 === 0) { setYear((y) => y - 1); setMonth0(11); } else setMonth0((m) => m - 1);
+    }
   };
   const goNext = () => {
-    if (month0 === 11) { setYear((y) => y + 1); setMonth0(0); } else setMonth0((m) => m + 1);
+    if (view === "day") {
+      const d = new Date(year, month0, safeDay);
+      d.setDate(d.getDate() + 1);
+      setYear(d.getFullYear()); setMonth0(d.getMonth()); setDay(d.getDate());
+    } else {
+      if (month0 === 11) { setYear((y) => y + 1); setMonth0(0); } else setMonth0((m) => m + 1);
+    }
   };
+
+  const periodLabel = view === "day"
+    ? new Date(year, month0, safeDay).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })
+    : `${MONTHS[month0]} ${year}`;
 
   const handleDelete = async (id: string) => {
     try {
@@ -110,17 +140,31 @@ export default function Dashboard() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground text-sm mt-1">Your monthly money snapshot</p>
+          <p className="text-muted-foreground text-sm mt-1">
+            {view === "day" ? "See what you spent on this day" : "Your monthly money snapshot"}
+          </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Tabs value={view} onValueChange={(v) => setView(v as ViewMode)}>
+            <TabsList className="h-9">
+              <TabsTrigger value="month" className="text-xs px-3">Month</TabsTrigger>
+              <TabsTrigger value="day" className="text-xs px-3">Day</TabsTrigger>
+            </TabsList>
+          </Tabs>
           <div className="flex items-center gap-1 surface-card px-2 py-1">
             <Button variant="ghost" size="icon" onClick={goPrev}><ChevronLeft className="h-4 w-4" /></Button>
-            <span className="text-sm font-medium px-3 num min-w-[110px] text-center">{MONTHS[month0]} {year}</span>
+            <span className="text-sm font-medium px-3 num min-w-[160px] text-center">{periodLabel}</span>
             <Button variant="ghost" size="icon" onClick={goNext}><ChevronRight className="h-4 w-4" /></Button>
           </div>
-          <AddTransactionDialog defaultDate={`${year}-${String(month0 + 1).padStart(2, "0")}-15`} />
+          <AddTransactionDialog defaultDate={view === "day" ? dayKey : `${year}-${String(month0 + 1).padStart(2, "0")}-15`} />
         </div>
       </div>
+
+      {view === "day" && (
+        <p className="text-xs text-muted-foreground -mt-4">
+          {txs.length === 0 ? "No transactions on this day." : `${txs.length} transaction${txs.length === 1 ? "" : "s"} on this day.`}
+        </p>
+      )}
 
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -168,45 +212,6 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card className="p-5 surface-card">
-          <h3 className="font-medium mb-4">Expense breakdown</h3>
-          {expensePieData.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-12 text-center">No expenses yet this month.</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={260}>
-              <PieChart>
-                <Pie data={expensePieData} dataKey="value" nameKey="name" innerRadius={55} outerRadius={95} paddingAngle={2}>
-                  {expensePieData.map((e, i) => <Cell key={i} fill={e.color} />)}
-                </Pie>
-                <Tooltip
-                  contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
-                  formatter={(v: number) => fmtCurrency(v)}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          )}
-        </Card>
-
-        <Card className="p-5 surface-card">
-          <h3 className="font-medium mb-4">Income vs Expenses</h3>
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={[{ month: MONTHS[month0], income: totals.income, expense: totals.expense }]}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-              <YAxis stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `$${v}`} />
-              <Tooltip
-                contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
-                formatter={(v: number) => fmtCurrency(v)}
-              />
-              <Bar dataKey="income" fill="hsl(var(--income))" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="expense" fill="hsl(var(--expense))" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-      </div>
-
       {/* Recent transactions */}
       <Card className="p-5 surface-card">
         <h3 className="font-medium mb-4">All transactions this month</h3>
@@ -217,18 +222,27 @@ export default function Dashboard() {
             {txs.map((t: Transaction) => {
               const c = catById.get(t.category_id);
               return (
-                <div key={t.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: c?.color }} />
-                    <div className="min-w-0">
+                <div key={t.id} className="flex items-start justify-between gap-3 py-2 border-b border-border/50 last:border-0">
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
+                    <span className="h-2 w-2 rounded-full shrink-0 mt-2" style={{ backgroundColor: c?.color }} />
+                    <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium truncate">{t.description}</p>
                       <p className="text-xs text-muted-foreground">{c?.name} · {new Date(t.occurred_on).toLocaleDateString()}</p>
+                      {t.notes && (
+                        <p className="text-xs text-muted-foreground/90 mt-1 flex items-start gap-1">
+                          <StickyNote className="h-3 w-3 mt-0.5 shrink-0" />
+                          <span className="italic">{t.notes}</span>
+                        </p>
+                      )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className={`text-sm font-medium num ${c?.kind === "income" ? "text-income" : "text-expense"}`}>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className={`text-sm font-medium num mr-1 ${c?.kind === "income" ? "text-income" : "text-expense"}`}>
                       {c?.kind === "income" ? "+" : "-"}{fmtCurrency(Number(t.amount))}
                     </span>
+                    <Button variant="ghost" size="icon" onClick={() => setEditing(t)} className="h-8 w-8 text-muted-foreground hover:text-primary">
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
                     <Button variant="ghost" size="icon" onClick={() => handleDelete(t.id)} className="h-8 w-8 text-muted-foreground hover:text-expense">
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
@@ -239,6 +253,14 @@ export default function Dashboard() {
           </div>
         )}
       </Card>
+
+      {editing && (
+        <AddTransactionDialog
+          editing={editing}
+          open={!!editing}
+          onOpenChange={(o) => !o && setEditing(null)}
+        />
+      )}
 
       {drilldown && (
         <CategoryDrilldown
