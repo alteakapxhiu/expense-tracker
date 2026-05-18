@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Environment variables (contains secrets)
+.env
+.env.*
+
+# Database migration files (contain personal data)
+migrate_data.sql
+supabase_setup.sql
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
