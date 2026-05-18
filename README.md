@@ -1,13 +1,14 @@
-# Ledgerly — Gjurmues Personal i Shpenzimeve dhe te Ardhurave
+# Ledgerly : Nje portofol virtual per te gjurmuar shpenzimet 
 
-Nje aplikacion i plote React per gjurmimin e te ardhurave dhe shpenzimeve personale, menaxhimin e buxheteve mujore dhe planifikimin e shpenzimeve te ardhshme — ne nje nderfaqe te pastrre dhe responsive.
+Nje aplikacion i plote React per gjurmimin e te ardhurave dhe shpenzimeve personale, menaxhimin e buxheteve mujore dhe planifikimin e shpenzimeve te ardhshme.
+Kjo faqje u krijua specifikisht pasi me mungote nje menyre per te gjurmuar shpenzimet e mia ditore dhe gjendjen mujore te te ardhurave.
 
 ---
 
 ## Karakteristikat
 
-- **Dashboard** — Pasqyre mujore me tregues te te ardhurave/shpenzimeve, grafik byrek per kategori, grafik shtylle per krahasim, dhe liste transaksionesh ne kohe reale
-- **Rrjeta Vjetore** — Pamje ne forme tabele per te 12 muajt me totale per kategori; mbeshtet eksport dhe import CSV
+- **Dashboard** — Pasqyre mujore me tregues te te ardhurave/shpenzimeve, grafik "pie chart" per kategori, grafik shtylle per krahasim, dhe liste transaksionesh ne kohe reale
+- **Historiku Vjetor** — Pamje ne forme tabele per te 12 muajt me totale per kategori; mbeshtet eksport dhe import CSV
 - **Kategori** — Krijo dhe fshi kategori te personalizuara te ardhurave/shpenzimeve me etiketa ngjyrash dhe grupe
 - **Buxhetet Mujore** — Vendos kufij shpenzimesh per kategori me shtylla progresit dhe sinjalizime tejkalimi
 - **Per te Shpenzuar** — Planifiko shpenzime te ardhshme me nivele prioriteti, data qellimi dhe gjurmim i statusit
@@ -27,25 +28,6 @@ Nje aplikacion i plote React per gjurmimin e te ardhurave dhe shpenzimeve person
 | Grafiket | Recharts |
 | Backend / API | Supabase (REST API + Auth) |
 | Mjeti i Build | Vite |
-
----
-
-## Permbushja e Kerkesave Minimale
-
-| Kerkesa | Implementimi |
-|---|---|
-| 5+ komponente React | `AppLayout`, `AddTransactionDialog`, `CategoryDrilldown`, `CsvIO`, `NavLink`, dhe te gjitha faqet |
-| `useState` dhe `useEffect` | Perdoren ne cdo faqe dhe ne `useAuth` per menaxhimin e sesionit |
-| Formular per input te dhenash | `AddTransactionDialog`, formulari i Kategorive, inputet e Buxhetit, dialogu i ToSpend |
-| Listim te dhenash | Liste transaksionesh, rrjeta kategorish, rreshta buxheti, liste shpenzimesh te planifikuara |
-| CRUD — Krijo | Shto transaksione, kategori, buxhete, shpenzime te planifikuara |
-| CRUD — Lexo | Te dhenat merren nga Supabase API nepermjet React Query |
-| CRUD — Perditeso | Ndrysho kufijtë e buxhetit, perditeso statusin e shpenzimeve te planifikuara, edito transaksione |
-| CRUD — Fshi | Fshi transaksione, kategori, buxhete, shpenzime te planifikuara |
-| Navigim me React Router | 6 rruge: `/`, `/year`, `/categories`, `/budgets`, `/to-spend`, `/auth` |
-| Ruajtje te dhenash nepermjet API | Supabase REST API me baze te dhenash PostgreSQL |
-| UI e rregullt | Tailwind CSS + libraria e komponenteve shadcn/ui |
-| Strukture e pastrre | Dosje bazuar ne funksion: `pages/`, `components/`, `hooks/`, `lib/`, `types/` |
 
 ---
 
@@ -92,9 +74,9 @@ Te gjitha te dhenat ruhen nepermjet **Supabase REST API**. Klienti inicializohet
 
 ---
 
-## Si te Fillosh
+## Si te hapesh lokalisht projektin
 
-### Parakushtet
+### Ne fillim 
 
 - Node.js 18+
 - Nje projekt [Supabase](https://supabase.com) me tabelat e meposhtme
@@ -126,7 +108,3 @@ Te gjitha te dhenat ruhen nepermjet **Supabase REST API**. Klienti inicializohet
 5. Hap [http://localhost:8080](http://localhost:8080) ne shfletuesin tend.
 
 ---
-
-## Autori
-
-Zhvilluar si projekt perfundimtar per kursin e React.
