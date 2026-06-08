@@ -173,22 +173,6 @@ export default function Dashboard() {
         <KpiCard label="Net (cash short/extra)" value={totals.net} icon={<Wallet className="h-5 w-5" />} tone={totals.net >= 0 ? "income" : "expense"} signed />
       </div>
 
-      {holdsTotal > 0 && (
-        <Link to="/on-hold" className="block">
-          <Card className="p-4 surface-card border-warning/40 hover:border-warning/70 transition-colors">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <PauseCircle className="h-5 w-5 text-warning shrink-0" />
-                <div>
-                  <p className="text-sm font-medium">On hold</p>
-                  <p className="text-xs text-muted-foreground">Cash withdrawn & money lent — reduces your balance, not counted as expense</p>
-                </div>
-              </div>
-              <span className="text-lg font-semibold num text-warning">-{fmtCurrency(holdsTotal)}</span>
-            </div>
-          </Card>
-        </Link>
-      )}
 
       {/* Budget alerts */}
       {budgetAlerts.length > 0 && (
