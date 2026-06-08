@@ -145,12 +145,12 @@ export function AddTransactionDialog({
 
         <form onSubmit={handleSubmit} className="px-4 pb-4 sm:px-5 sm:pb-5 space-y-3 sm:space-y-5">
           {/* Kind segmented toggle */}
-          <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-muted/60">
+          <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-muted/60">
             <button
               type="button"
               onClick={() => setKind("expense")}
               className={cn(
-                "flex items-center justify-center gap-1.5 py-1.5 sm:py-2.5 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center justify-center gap-1.5 py-1.5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-colors",
                 kind === "expense" ? "bg-background shadow-sm text-expense" : "text-muted-foreground"
               )}
             >
@@ -158,15 +158,32 @@ export function AddTransactionDialog({
             </button>
             <button
               type="button"
+              onClick={() => setKind("hold")}
+              disabled={!!editing}
+              className={cn(
+                "flex items-center justify-center gap-1.5 py-1.5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-colors disabled:opacity-40",
+                kind === "hold" ? "bg-background shadow-sm text-warning" : "text-muted-foreground"
+              )}
+            >
+              <PauseCircle className="h-4 w-4" /> On Hold
+            </button>
+            <button
+              type="button"
               onClick={() => setKind("income")}
               className={cn(
-                "flex items-center justify-center gap-1.5 py-1.5 sm:py-2.5 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center justify-center gap-1.5 py-1.5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-colors",
                 kind === "income" ? "bg-background shadow-sm text-income" : "text-muted-foreground"
               )}
             >
               <TrendingUp className="h-4 w-4" /> Income
             </button>
           </div>
+
+          {kind === "hold" && (
+            <p className="text-[11px] text-muted-foreground -mt-1 leading-snug">
+              Money out of your wallet but not spent — withdrawn cash or money you lent. Doesn't count as an expense.
+            </p>
+          )}
 
           {/* Amount big input */}
           <div>
@@ -194,45 +211,75 @@ export function AddTransactionDialog({
 
           {/* Description */}
           <div>
-            <Label htmlFor="tx-desc" className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">What for?</Label>
+            <Label htmlFor="tx-desc" className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">
+              {kind === "hold" ? "Title" : "What for?"}
+            </Label>
             <Input
               id="tx-desc"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="e.g. Groceries at Spar"
+              placeholder={kind === "hold" ? "e.g. Cash from ATM, Loan to Ana" : "e.g. Groceries at Spar"}
               className="h-10 sm:h-12 mt-1"
               autoComplete="off"
             />
           </div>
 
-          {/* Category chips */}
-          <div>
-            <Label className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">Category</Label>
-            <div className="flex flex-wrap gap-1.5 mt-1 max-h-24 sm:max-h-none overflow-y-auto">
-              {filteredCats.map((c: Category) => {
-                const active = categoryId === c.id;
-                return (
-                  <button
-                    type="button"
-                    key={c.id}
-                    onClick={() => setCategoryId(c.id)}
-                    className={cn(
-                      "flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-2 rounded-full border text-xs sm:text-sm transition-all",
-                      active
-                        ? "border-primary bg-primary/10 text-foreground shadow-sm"
-                        : "border-border bg-background text-muted-foreground hover:border-primary/40"
-                    )}
-                  >
-                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: c.color }} />
-                    {c.name}
-                  </button>
-                );
-              })}
-              {filteredCats.length === 0 && (
-                <p className="text-xs text-muted-foreground py-2">No {kind} categories yet.</p>
-              )}
+          {/* Category chips OR hold-type chips */}
+          {kind === "hold" ? (
+            <div>
+              <Label className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">Type</Label>
+              <div className="grid grid-cols-2 gap-1.5 mt-1">
+                <button
+                  type="button"
+                  onClick={() => setHoldKind("withdrawn")}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border text-xs sm:text-sm transition-all",
+                    holdKind === "withdrawn" ? "border-warning bg-warning/10 text-foreground" : "border-border text-muted-foreground"
+                  )}
+                >
+                  <Banknote className="h-4 w-4" /> Withdrawn cash
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHoldKind("lent")}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border text-xs sm:text-sm transition-all",
+                    holdKind === "lent" ? "border-warning bg-warning/10 text-foreground" : "border-border text-muted-foreground"
+                  )}
+                >
+                  <HandCoins className="h-4 w-4" /> Lent out
+                </button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div>
+              <Label className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">Category</Label>
+              <div className="flex flex-wrap gap-1.5 mt-1 max-h-24 sm:max-h-none overflow-y-auto">
+                {filteredCats.map((c: Category) => {
+                  const active = categoryId === c.id;
+                  return (
+                    <button
+                      type="button"
+                      key={c.id}
+                      onClick={() => setCategoryId(c.id)}
+                      className={cn(
+                        "flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-2 rounded-full border text-xs sm:text-sm transition-all",
+                        active
+                          ? "border-primary bg-primary/10 text-foreground shadow-sm"
+                          : "border-border bg-background text-muted-foreground hover:border-primary/40"
+                      )}
+                    >
+                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: c.color }} />
+                      {c.name}
+                    </button>
+                  );
+                })}
+                {filteredCats.length === 0 && (
+                  <p className="text-xs text-muted-foreground py-2">No {kind} categories yet.</p>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Date with quick chips */}
           <div>
