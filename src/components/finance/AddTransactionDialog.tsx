@@ -1,16 +1,20 @@
 import { useState, useMemo, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, TrendingUp, TrendingDown } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, PauseCircle, Banknote, HandCoins } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCategories, useUpsertTransaction } from "@/hooks/useFinanceData";
 import { useCurrency, CURRENCIES } from "@/hooks/useCurrency";
 import type { Category, Transaction } from "@/types/db";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+type Mode = "expense" | "income" | "hold";
 
 type Props = {
   defaultCategoryId?: string;
@@ -34,6 +38,7 @@ export function AddTransactionDialog({
   const { user } = useAuth();
   const { data: cats = [] } = useCategories();
   const upsert = useUpsertTransaction();
+  const qc = useQueryClient();
   const { currency, rate } = useCurrency();
   const symbol = CURRENCIES.find((c) => c.code === currency)?.symbol ?? "$";
 
@@ -46,7 +51,8 @@ export function AddTransactionDialog({
 
   // Resolve initial kind: from editing's category, defaultKind, or "expense"
   const editingCat = editing ? cats.find((c) => c.id === editing.category_id) : null;
-  const [kind, setKind] = useState<"income" | "expense">(editingCat?.kind ?? defaultKind ?? "expense");
+  const [kind, setKind] = useState<Mode>(editingCat?.kind ?? defaultKind ?? "expense");
+  const [holdKind, setHoldKind] = useState<"withdrawn" | "lent">("withdrawn");
   const [categoryId, setCategoryId] = useState<string | undefined>(editing?.category_id ?? defaultCategoryId);
   const [amountInput, setAmountInput] = useState<string>(
     editing ? (Number(editing.amount) * rate).toFixed(currency === "ALL" || currency === "JPY" ? 0 : 2) : ""
@@ -66,10 +72,11 @@ export function AddTransactionDialog({
     setNotes(editing?.notes ?? "");
   }, [open, editing, defaultCategoryId, defaultKind, defaultDate]);
 
-  const filteredCats = useMemo(() => cats.filter((c) => c.kind === kind), [cats, kind]);
+  const filteredCats = useMemo(() => cats.filter((c) => c.kind === (kind === "hold" ? "expense" : kind)), [cats, kind]);
 
   // Reset categoryId when switching kind if it doesn't belong anymore
   useEffect(() => {
+    if (kind === "hold") return;
     if (categoryId && !filteredCats.find((c) => c.id === categoryId)) setCategoryId(undefined);
   }, [kind, filteredCats, categoryId]);
 
@@ -84,22 +91,36 @@ export function AddTransactionDialog({
     if (!user) return;
     const n = parseFloat(amountInput.replace(",", "."));
     if (!isFinite(n) || n <= 0) return toast.error("Enter an amount");
-    if (!categoryId) return toast.error("Pick a category");
     if (!description.trim()) return toast.error("Add a short description");
     if (rate === 0) return toast.error("Currency rate unavailable");
     const usdAmount = n / rate;
 
     try {
-      await upsert.mutateAsync({
-        id: editing?.id,
-        user_id: user.id,
-        description: description.trim(),
-        amount: Number(usdAmount.toFixed(4)),
-        category_id: categoryId,
-        occurred_on: occurredOn,
-        notes: notes.trim() || null,
-      });
-      toast.success(editing ? "Updated" : "Saved");
+      if (kind === "hold") {
+        const { error } = await supabase.from("holds").insert({
+          user_id: user.id,
+          title: description.trim(),
+          amount: Number(usdAmount.toFixed(4)),
+          kind: holdKind,
+          notes: notes.trim() || null,
+          occurred_on: occurredOn,
+        });
+        if (error) throw error;
+        qc.invalidateQueries({ queryKey: ["holds"] });
+        toast.success("Added to On Hold");
+      } else {
+        if (!categoryId) return toast.error("Pick a category");
+        await upsert.mutateAsync({
+          id: editing?.id,
+          user_id: user.id,
+          description: description.trim(),
+          amount: Number(usdAmount.toFixed(4)),
+          category_id: categoryId,
+          occurred_on: occurredOn,
+          notes: notes.trim() || null,
+        });
+        toast.success(editing ? "Updated" : "Saved");
+      }
       setOpen(false);
     } catch (err: any) {
       toast.error(err.message ?? "Failed to save");
@@ -124,12 +145,12 @@ export function AddTransactionDialog({
 
         <form onSubmit={handleSubmit} className="px-4 pb-4 sm:px-5 sm:pb-5 space-y-3 sm:space-y-5">
           {/* Kind segmented toggle */}
-          <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-muted/60">
+          <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-muted/60">
             <button
               type="button"
               onClick={() => setKind("expense")}
               className={cn(
-                "flex items-center justify-center gap-1.5 py-1.5 sm:py-2.5 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center justify-center gap-1.5 py-1.5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-colors",
                 kind === "expense" ? "bg-background shadow-sm text-expense" : "text-muted-foreground"
               )}
             >
@@ -137,15 +158,32 @@ export function AddTransactionDialog({
             </button>
             <button
               type="button"
+              onClick={() => setKind("hold")}
+              disabled={!!editing}
+              className={cn(
+                "flex items-center justify-center gap-1.5 py-1.5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-colors disabled:opacity-40",
+                kind === "hold" ? "bg-background shadow-sm text-warning" : "text-muted-foreground"
+              )}
+            >
+              <PauseCircle className="h-4 w-4" /> On Hold
+            </button>
+            <button
+              type="button"
               onClick={() => setKind("income")}
               className={cn(
-                "flex items-center justify-center gap-1.5 py-1.5 sm:py-2.5 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center justify-center gap-1.5 py-1.5 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-colors",
                 kind === "income" ? "bg-background shadow-sm text-income" : "text-muted-foreground"
               )}
             >
               <TrendingUp className="h-4 w-4" /> Income
             </button>
           </div>
+
+          {kind === "hold" && (
+            <p className="text-[11px] text-muted-foreground -mt-1 leading-snug">
+              Money out of your wallet but not spent — withdrawn cash or money you lent. Doesn't count as an expense.
+            </p>
+          )}
 
           {/* Amount big input */}
           <div>
@@ -173,45 +211,75 @@ export function AddTransactionDialog({
 
           {/* Description */}
           <div>
-            <Label htmlFor="tx-desc" className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">What for?</Label>
+            <Label htmlFor="tx-desc" className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">
+              {kind === "hold" ? "Title" : "What for?"}
+            </Label>
             <Input
               id="tx-desc"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="e.g. Groceries at Spar"
+              placeholder={kind === "hold" ? "e.g. Cash from ATM, Loan to Ana" : "e.g. Groceries at Spar"}
               className="h-10 sm:h-12 mt-1"
               autoComplete="off"
             />
           </div>
 
-          {/* Category chips */}
-          <div>
-            <Label className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">Category</Label>
-            <div className="flex flex-wrap gap-1.5 mt-1 max-h-24 sm:max-h-none overflow-y-auto">
-              {filteredCats.map((c: Category) => {
-                const active = categoryId === c.id;
-                return (
-                  <button
-                    type="button"
-                    key={c.id}
-                    onClick={() => setCategoryId(c.id)}
-                    className={cn(
-                      "flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-2 rounded-full border text-xs sm:text-sm transition-all",
-                      active
-                        ? "border-primary bg-primary/10 text-foreground shadow-sm"
-                        : "border-border bg-background text-muted-foreground hover:border-primary/40"
-                    )}
-                  >
-                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: c.color }} />
-                    {c.name}
-                  </button>
-                );
-              })}
-              {filteredCats.length === 0 && (
-                <p className="text-xs text-muted-foreground py-2">No {kind} categories yet.</p>
-              )}
+          {/* Category chips OR hold-type chips */}
+          {kind === "hold" ? (
+            <div>
+              <Label className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">Type</Label>
+              <div className="grid grid-cols-2 gap-1.5 mt-1">
+                <button
+                  type="button"
+                  onClick={() => setHoldKind("withdrawn")}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border text-xs sm:text-sm transition-all",
+                    holdKind === "withdrawn" ? "border-warning bg-warning/10 text-foreground" : "border-border text-muted-foreground"
+                  )}
+                >
+                  <Banknote className="h-4 w-4" /> Withdrawn cash
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setHoldKind("lent")}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border text-xs sm:text-sm transition-all",
+                    holdKind === "lent" ? "border-warning bg-warning/10 text-foreground" : "border-border text-muted-foreground"
+                  )}
+                >
+                  <HandCoins className="h-4 w-4" /> Lent out
+                </button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div>
+              <Label className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">Category</Label>
+              <div className="flex flex-wrap gap-1.5 mt-1 max-h-24 sm:max-h-none overflow-y-auto">
+                {filteredCats.map((c: Category) => {
+                  const active = categoryId === c.id;
+                  return (
+                    <button
+                      type="button"
+                      key={c.id}
+                      onClick={() => setCategoryId(c.id)}
+                      className={cn(
+                        "flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-2 rounded-full border text-xs sm:text-sm transition-all",
+                        active
+                          ? "border-primary bg-primary/10 text-foreground shadow-sm"
+                          : "border-border bg-background text-muted-foreground hover:border-primary/40"
+                      )}
+                    >
+                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: c.color }} />
+                      {c.name}
+                    </button>
+                  );
+                })}
+                {filteredCats.length === 0 && (
+                  <p className="text-xs text-muted-foreground py-2">No {kind} categories yet.</p>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Date with quick chips */}
           <div>
