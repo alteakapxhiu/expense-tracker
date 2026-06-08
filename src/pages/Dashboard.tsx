@@ -1,16 +1,13 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useCategories, useTransactionsByMonth, useDeleteTransaction, useBudgets } from "@/hooks/useFinanceData";
 import { fmtCurrency, MONTHS } from "@/lib/format";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Wallet, AlertTriangle, Trash2, Pencil, StickyNote, PauseCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Wallet, AlertTriangle, Trash2, Pencil, StickyNote } from "lucide-react";
 import { AddTransactionDialog } from "@/components/finance/AddTransactionDialog";
 import { CategoryDrilldown } from "@/components/finance/CategoryDrilldown";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Category, Transaction } from "@/types/db";
-import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
 type ViewMode = "month" | "day";
@@ -27,15 +24,6 @@ export default function Dashboard() {
   const { data: cats = [] } = useCategories();
   const { data: monthTxs = [] } = useTransactionsByMonth(year, month0);
   const { data: budgets = [] } = useBudgets();
-  const { data: activeHolds = [] } = useQuery({
-    queryKey: ["holds", "active"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("holds").select("amount").eq("status", "active");
-      if (error) throw error;
-      return data as { amount: number }[];
-    },
-  });
-  const holdsTotal = activeHolds.reduce((s, h) => s + Number(h.amount), 0);
   const del = useDeleteTransaction();
 
   const daysInMonth = new Date(year, month0 + 1, 0).getDate();
