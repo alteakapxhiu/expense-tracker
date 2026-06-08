@@ -2,7 +2,7 @@ import { Navigate, NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { useCurrency, useCurrencyTick, CURRENCIES, CurrencyCode } from "@/hooks/useCurrency";
-import { Wallet, LayoutDashboard, Table2, Tags, LogOut, Target, ListChecks, BarChart3, Sun, Moon } from "lucide-react";
+import { Wallet, LayoutDashboard, Table2, Tags, LogOut, Target, ListChecks, BarChart3, Sun, Moon, PauseCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
@@ -44,6 +44,9 @@ export default function AppLayout() {
           </NavLink>
           <NavLink to="/to-spend" className={navCls}>
             <ListChecks className="h-4 w-4" /> To Spend
+          </NavLink>
+          <NavLink to="/on-hold" className={navCls}>
+            <PauseCircle className="h-4 w-4" /> On Hold
           </NavLink>
           <NavLink to="/categories" className={navCls}>
             <Tags className="h-4 w-4" /> Categories
@@ -106,20 +109,23 @@ export default function AppLayout() {
       <main className="flex-1 overflow-x-hidden pt-16 md:pt-0">
         <CurrencyOutlet />
         {/* Mobile bottom nav */}
-        <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-sidebar border-t border-sidebar-border grid grid-cols-5 px-2 py-2">
-          <NavLink to="/" end className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-xs", isActive ? "text-primary" : "text-sidebar-foreground")}>
+        <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-sidebar border-t border-sidebar-border grid grid-cols-6 px-1 py-2">
+          <NavLink to="/" end className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-[10px]", isActive ? "text-primary" : "text-sidebar-foreground")}>
             <LayoutDashboard className="h-4 w-4" /> Dash
           </NavLink>
-          <NavLink to="/year" className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-xs", isActive ? "text-primary" : "text-sidebar-foreground")}>
+          <NavLink to="/year" className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-[10px]", isActive ? "text-primary" : "text-sidebar-foreground")}>
             <Table2 className="h-4 w-4" /> Year
           </NavLink>
-          <NavLink to="/insights" className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-xs", isActive ? "text-primary" : "text-sidebar-foreground")}>
+          <NavLink to="/insights" className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-[10px]", isActive ? "text-primary" : "text-sidebar-foreground")}>
             <BarChart3 className="h-4 w-4" /> Stats
           </NavLink>
-          <NavLink to="/to-spend" className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-xs", isActive ? "text-primary" : "text-sidebar-foreground")}>
+          <NavLink to="/to-spend" className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-[10px]", isActive ? "text-primary" : "text-sidebar-foreground")}>
             <ListChecks className="h-4 w-4" /> Plan
           </NavLink>
-          <NavLink to="/budgets" className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-xs", isActive ? "text-primary" : "text-sidebar-foreground")}>
+          <NavLink to="/on-hold" className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-[10px]", isActive ? "text-primary" : "text-sidebar-foreground")}>
+            <PauseCircle className="h-4 w-4" /> Hold
+          </NavLink>
+          <NavLink to="/budgets" className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-[10px]", isActive ? "text-primary" : "text-sidebar-foreground")}>
             <Target className="h-4 w-4" /> Budget
           </NavLink>
         </nav>

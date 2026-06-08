@@ -82,6 +82,45 @@ export type Database = {
         }
         Relationships: []
       }
+      holds: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          kind: string
+          notes: string | null
+          occurred_on: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          kind?: string
+          notes?: string | null
+          occurred_on?: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          notes?: string | null
+          occurred_on?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       planned_expenses: {
         Row: {
           amount: number
