@@ -13,6 +13,7 @@ import YearGrid from "./pages/YearGrid";
 import Categories from "./pages/Categories";
 import Budgets from "./pages/Budgets";
 import ToSpend from "./pages/ToSpend";
+import OnHold from "./pages/OnHold";
 import Insights from "./pages/Insights";
 import NotFound from "./pages/NotFound";
 
@@ -36,6 +37,7 @@ const App = () => (
                 <Route path="/categories" element={<Categories />} />
                 <Route path="/budgets" element={<Budgets />} />
                 <Route path="/to-spend" element={<ToSpend />} />
+                <Route path="/on-hold" element={<OnHold />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
