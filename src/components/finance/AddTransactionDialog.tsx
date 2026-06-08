@@ -1,16 +1,20 @@
 import { useState, useMemo, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, TrendingUp, TrendingDown } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, PauseCircle, Banknote, HandCoins } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCategories, useUpsertTransaction } from "@/hooks/useFinanceData";
 import { useCurrency, CURRENCIES } from "@/hooks/useCurrency";
 import type { Category, Transaction } from "@/types/db";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+type Mode = "expense" | "income" | "hold";
 
 type Props = {
   defaultCategoryId?: string;
@@ -34,6 +38,7 @@ export function AddTransactionDialog({
   const { user } = useAuth();
   const { data: cats = [] } = useCategories();
   const upsert = useUpsertTransaction();
+  const qc = useQueryClient();
   const { currency, rate } = useCurrency();
   const symbol = CURRENCIES.find((c) => c.code === currency)?.symbol ?? "$";
 
@@ -46,7 +51,8 @@ export function AddTransactionDialog({
 
   // Resolve initial kind: from editing's category, defaultKind, or "expense"
   const editingCat = editing ? cats.find((c) => c.id === editing.category_id) : null;
-  const [kind, setKind] = useState<"income" | "expense">(editingCat?.kind ?? defaultKind ?? "expense");
+  const [kind, setKind] = useState<Mode>(editingCat?.kind ?? defaultKind ?? "expense");
+  const [holdKind, setHoldKind] = useState<"withdrawn" | "lent">("withdrawn");
   const [categoryId, setCategoryId] = useState<string | undefined>(editing?.category_id ?? defaultCategoryId);
   const [amountInput, setAmountInput] = useState<string>(
     editing ? (Number(editing.amount) * rate).toFixed(currency === "ALL" || currency === "JPY" ? 0 : 2) : ""
@@ -66,10 +72,11 @@ export function AddTransactionDialog({
     setNotes(editing?.notes ?? "");
   }, [open, editing, defaultCategoryId, defaultKind, defaultDate]);
 
-  const filteredCats = useMemo(() => cats.filter((c) => c.kind === kind), [cats, kind]);
+  const filteredCats = useMemo(() => cats.filter((c) => c.kind === (kind === "hold" ? "expense" : kind)), [cats, kind]);
 
   // Reset categoryId when switching kind if it doesn't belong anymore
   useEffect(() => {
+    if (kind === "hold") return;
     if (categoryId && !filteredCats.find((c) => c.id === categoryId)) setCategoryId(undefined);
   }, [kind, filteredCats, categoryId]);
 
@@ -84,22 +91,36 @@ export function AddTransactionDialog({
     if (!user) return;
     const n = parseFloat(amountInput.replace(",", "."));
     if (!isFinite(n) || n <= 0) return toast.error("Enter an amount");
-    if (!categoryId) return toast.error("Pick a category");
     if (!description.trim()) return toast.error("Add a short description");
     if (rate === 0) return toast.error("Currency rate unavailable");
     const usdAmount = n / rate;
 
     try {
-      await upsert.mutateAsync({
-        id: editing?.id,
-        user_id: user.id,
-        description: description.trim(),
-        amount: Number(usdAmount.toFixed(4)),
-        category_id: categoryId,
-        occurred_on: occurredOn,
-        notes: notes.trim() || null,
-      });
-      toast.success(editing ? "Updated" : "Saved");
+      if (kind === "hold") {
+        const { error } = await supabase.from("holds").insert({
+          user_id: user.id,
+          title: description.trim(),
+          amount: Number(usdAmount.toFixed(4)),
+          kind: holdKind,
+          notes: notes.trim() || null,
+          occurred_on: occurredOn,
+        });
+        if (error) throw error;
+        qc.invalidateQueries({ queryKey: ["holds"] });
+        toast.success("Added to On Hold");
+      } else {
+        if (!categoryId) return toast.error("Pick a category");
+        await upsert.mutateAsync({
+          id: editing?.id,
+          user_id: user.id,
+          description: description.trim(),
+          amount: Number(usdAmount.toFixed(4)),
+          category_id: categoryId,
+          occurred_on: occurredOn,
+          notes: notes.trim() || null,
+        });
+        toast.success(editing ? "Updated" : "Saved");
+      }
       setOpen(false);
     } catch (err: any) {
       toast.error(err.message ?? "Failed to save");
