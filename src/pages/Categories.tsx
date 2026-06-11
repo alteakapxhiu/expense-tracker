@@ -86,6 +86,7 @@ export default function Categories() {
               <SelectContent>
                 <SelectItem value="expense">Expense</SelectItem>
                 <SelectItem value="income">Income</SelectItem>
+                <SelectItem value="hold">On Hold</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -103,7 +104,7 @@ export default function Categories() {
         </form>
       </Card>
 
-      {(["income", "expense"] as const).map((k) => (
+      {(["income", "expense", "hold"] as const).map((k) => (
         <Card key={k} className="p-5 surface-card">
           <h3 className="font-medium mb-3 capitalize">{k} categories</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
