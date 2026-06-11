@@ -109,7 +109,7 @@ export default function AppLayout() {
       <main className="flex-1 overflow-x-hidden pt-16 md:pt-0">
         <CurrencyOutlet />
         {/* Mobile bottom nav */}
-        <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-sidebar border-t border-sidebar-border grid grid-cols-6 px-1 py-2">
+        <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-sidebar border-t border-sidebar-border grid grid-cols-7 px-1 py-2">
           <NavLink to="/" end className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-[10px]", isActive ? "text-primary" : "text-sidebar-foreground")}>
             <LayoutDashboard className="h-4 w-4" /> Dash
           </NavLink>
@@ -127,6 +127,9 @@ export default function AppLayout() {
           </NavLink>
           <NavLink to="/budgets" className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-[10px]", isActive ? "text-primary" : "text-sidebar-foreground")}>
             <Target className="h-4 w-4" /> Budget
+          </NavLink>
+          <NavLink to="/categories" className={({ isActive }) => cn("flex flex-col items-center gap-1 py-1 text-[10px]", isActive ? "text-primary" : "text-sidebar-foreground")}>
+            <Tags className="h-4 w-4" /> Tags
           </NavLink>
         </nav>
         <div className="md:hidden h-16" />

@@ -16,7 +16,7 @@ const PALETTE = ["#10b981", "#06b6d4", "#3b82f6", "#8b5cf6", "#ec4899", "#f43f5e
 
 const schema = z.object({
   name: z.string().trim().min(1).max(60),
-  kind: z.enum(["income", "expense"]),
+  kind: z.enum(["income", "expense", "hold"]),
   group_name: z.string().trim().max(60).optional(),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
 });
@@ -26,7 +26,7 @@ export default function Categories() {
   const { data: cats = [] } = useCategories();
   const invalidate = useInvalidateData();
   const [color, setColor] = useState(PALETTE[0]);
-  const [kind, setKind] = useState<"income" | "expense">("expense");
+  const [kind, setKind] = useState<"income" | "expense" | "hold">("expense");
 
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -59,7 +59,7 @@ export default function Categories() {
     invalidate();
   };
 
-  const grouped = (k: "income" | "expense") => cats.filter((c) => c.kind === k);
+  const grouped = (k: "income" | "expense" | "hold") => cats.filter((c) => c.kind === k);
 
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6 animate-fade-in">
@@ -86,6 +86,7 @@ export default function Categories() {
               <SelectContent>
                 <SelectItem value="expense">Expense</SelectItem>
                 <SelectItem value="income">Income</SelectItem>
+                <SelectItem value="hold">On Hold</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -103,7 +104,7 @@ export default function Categories() {
         </form>
       </Card>
 
-      {(["income", "expense"] as const).map((k) => (
+      {(["income", "expense", "hold"] as const).map((k) => (
         <Card key={k} className="p-5 surface-card">
           <h3 className="font-medium mb-3 capitalize">{k} categories</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">

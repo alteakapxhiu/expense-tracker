@@ -233,7 +233,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      category_kind: "income" | "expense"
+      category_kind: "income" | "expense" | "hold"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -361,7 +361,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      category_kind: ["income", "expense"],
+      category_kind: ["income", "expense", "hold"],
     },
   },
 } as const
