@@ -16,7 +16,7 @@ const PALETTE = ["#10b981", "#06b6d4", "#3b82f6", "#8b5cf6", "#ec4899", "#f43f5e
 
 const schema = z.object({
   name: z.string().trim().min(1).max(60),
-  kind: z.enum(["income", "expense"]),
+  kind: z.enum(["income", "expense", "hold"]),
   group_name: z.string().trim().max(60).optional(),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
 });
@@ -26,7 +26,7 @@ export default function Categories() {
   const { data: cats = [] } = useCategories();
   const invalidate = useInvalidateData();
   const [color, setColor] = useState(PALETTE[0]);
-  const [kind, setKind] = useState<"income" | "expense">("expense");
+  const [kind, setKind] = useState<"income" | "expense" | "hold">("expense");
 
   const handleAdd = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
