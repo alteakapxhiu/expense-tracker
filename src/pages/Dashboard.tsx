@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
-import { useCategories, useTransactionsByMonth, useDeleteTransaction, useBudgets } from "@/hooks/useFinanceData";
+import { Link } from "react-router-dom";
+import { useCategories, useTransactionsByMonth, useDeleteTransaction, useBudgets, useHoldsByMonth } from "@/hooks/useFinanceData";
 import { fmtCurrency, MONTHS } from "@/lib/format";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Wallet, AlertTriangle, Trash2, Pencil, StickyNote } from "lucide-react";
+import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Wallet, AlertTriangle, Trash2, Pencil, StickyNote, PauseCircle } from "lucide-react";
 import { AddTransactionDialog } from "@/components/finance/AddTransactionDialog";
 import { CategoryDrilldown } from "@/components/finance/CategoryDrilldown";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,6 +25,7 @@ export default function Dashboard() {
   const { data: cats = [] } = useCategories();
   const { data: monthTxs = [] } = useTransactionsByMonth(year, month0);
   const { data: budgets = [] } = useBudgets();
+  const { data: monthHolds = [] } = useHoldsByMonth(year, month0);
   const del = useDeleteTransaction();
 
   const daysInMonth = new Date(year, month0 + 1, 0).getDate();
@@ -33,6 +35,11 @@ export default function Dashboard() {
   const txs = useMemo(
     () => (view === "day" ? monthTxs.filter((t) => t.occurred_on === dayKey) : monthTxs),
     [monthTxs, view, dayKey]
+  );
+
+  const holds = useMemo(
+    () => (view === "day" ? monthHolds.filter((h) => h.occurred_on === dayKey) : monthHolds),
+    [monthHolds, view, dayKey]
   );
 
   const catById = useMemo(() => new Map(cats.map((c) => [c.id, c])), [cats]);
@@ -45,8 +52,9 @@ export default function Dashboard() {
       if (c.kind === "income") income += Number(t.amount);
       else expense += Number(t.amount);
     }
-    return { income, expense, net: income - expense };
-  }, [txs, catById]);
+    const onHold = holds.filter((h) => h.status === "active").reduce((s, h) => s + Number(h.amount), 0);
+    return { income, expense, onHold, net: income - expense - onHold };
+  }, [txs, holds, catById]);
 
   // Group totals by group_name within each kind
   const groupBreakdown = useMemo(() => {
@@ -167,8 +175,11 @@ export default function Dashboard() {
       )}
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <KpiCard label="Income" value={totals.income} icon={<TrendingUp className="h-5 w-5" />} tone="income" />
+        <Link to="/on-hold" className="block">
+          <KpiCard label="On Hold" value={totals.onHold} icon={<PauseCircle className="h-5 w-5" />} tone="hold" />
+        </Link>
         <KpiCard label="Expenses" value={totals.expense} icon={<TrendingDown className="h-5 w-5" />} tone="expense" />
         <KpiCard label="Net (cash short/extra)" value={totals.net} icon={<Wallet className="h-5 w-5" />} tone={totals.net >= 0 ? "income" : "expense"} signed />
       </div>
@@ -277,11 +288,11 @@ export default function Dashboard() {
   );
 }
 
-function KpiCard({ label, value, icon, tone, signed }: { label: string; value: number; icon: React.ReactNode; tone: "income" | "expense"; signed?: boolean }) {
-  const bg = tone === "income" ? "bg-gradient-income" : "bg-gradient-expense";
-  const color = tone === "income" ? "text-income" : "text-expense";
+function KpiCard({ label, value, icon, tone, signed }: { label: string; value: number; icon: React.ReactNode; tone: "income" | "expense" | "hold"; signed?: boolean }) {
+  const bg = tone === "income" ? "bg-gradient-income" : tone === "expense" ? "bg-gradient-expense" : "";
+  const color = tone === "income" ? "text-income" : tone === "expense" ? "text-expense" : "text-warning";
   return (
-    <Card className={`p-5 surface-card relative overflow-hidden ${bg}`}>
+    <Card className={`p-5 surface-card relative overflow-hidden ${bg} ${tone === "hold" ? "hover:bg-accent transition-colors cursor-pointer" : ""}`}>
       <div className="flex items-center justify-between mb-3">
         <span className="text-sm text-muted-foreground">{label}</span>
         <span className={color}>{icon}</span>

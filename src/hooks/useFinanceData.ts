@@ -59,6 +59,23 @@ export const useBudgets = () =>
     },
   });
 
+export const useHoldsByMonth = (year: number, month0: number) =>
+  useQuery({
+    queryKey: ["holds-month", year, month0],
+    queryFn: async () => {
+      const start = new Date(year, month0, 1).toISOString().slice(0, 10);
+      const end = new Date(year, month0 + 1, 1).toISOString().slice(0, 10);
+      const { data, error } = await supabase
+        .from("holds")
+        .select("*")
+        .gte("occurred_on", start)
+        .lt("occurred_on", end)
+        .order("occurred_on", { ascending: false });
+      if (error) throw error;
+      return data as Array<{ id: string; title: string; amount: number; kind: "withdrawn" | "lent"; status: "active" | "released"; occurred_on: string; notes: string | null }>;
+    },
+  });
+
 export const useInvalidateData = () => {
   const qc = useQueryClient();
   return () => {
