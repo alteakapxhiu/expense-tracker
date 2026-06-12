@@ -107,6 +107,7 @@ export function AddTransactionDialog({
         });
         if (error) throw error;
         qc.invalidateQueries({ queryKey: ["holds"] });
+        qc.invalidateQueries({ queryKey: ["holds-month"] });
         toast.success("Added to On Hold");
       } else {
         if (!categoryId) return toast.error("Pick a category");
